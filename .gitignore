@@ -1,0 +1,9 @@
+.vscode/
+
+.DS_Store
+
+code/__pycache__/
+*.py[cod]
+*$py.class
+
+*.pdf
