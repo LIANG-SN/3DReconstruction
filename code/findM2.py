@@ -33,5 +33,7 @@ for i in range(4):
     if (P[:, -1] >= 0).all():
         M2 = M2s[:, :, i]
         print('find', i, err)
+        C2 = C2[i]
         # np.savez('q3_3.npz', M2=M2, C2=C2, P=P)
         # break
+# print(np.load('q3_3.npz')['C2'].shape)

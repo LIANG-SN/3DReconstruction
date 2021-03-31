@@ -6,6 +6,9 @@ Replace 'pass' by your implementation.
 # Insert your package here
 import numpy as np
 import helper 
+import math
+from scipy.ndimage import gaussian_filter
+import cv2
 '''
 Q2.1: Eight Point Algorithm
     Input:  pts1, Nx2 Matrix
@@ -13,8 +16,8 @@ Q2.1: Eight Point Algorithm
             M, a scalar parameter computed as max (imwidth, imheight)
     Output: F, the fundamental matrix
 '''
-def eightpoint(p1, p2, M):
-    # Replace pass by your implementation
+def eightpoint(p1, p2, M): #  inverse p1 & p2 ??
+
     assert(p1.shape[0]==p2.shape[0])
     assert(p1.shape[1]==2)
 
@@ -138,8 +141,44 @@ Q4.1: 3D visualization of the temple images.
 
 '''
 def epipolarCorrespondence(im1, im2, F, x1, y1):
-    # Replace pass by your implementation
-    pass
+    im1 = cv2.cvtColor(im1, cv2.COLOR_BGR2GRAY)
+    im2 = cv2.cvtColor(im2, cv2.COLOR_BGR2GRAY)
+    window = 3
+    p1 = np.ones(3)
+    p1[:2] = [x1, y1]
+    l = F @ p1
+    
+    w1 = im1.shape[1]
+    h1 = im1.shape[0]
+    w2 = im2.shape[1]
+    h2 = im2.shape[0]
+    im1Patch = np.zeros(((h1 + (window // 2) * 2), (w1 + (window // 2) * 2)))
+    im1Patch[window // 2 : -window // 2 + 1, window // 2 : -window // 2 + 1] = im1
+    im2Patch = np.zeros(((h2 + (window // 2) * 2), (w2 + (window // 2) * 2)))
+    im2Patch[window // 2 : -window // 2 + 1, window // 2 : -window // 2 + 1] = im2
+    error = 20010602
+    x2 = 0
+    y2 = 0
+    # use x = -b/a * y - c/a
+    k = - l[1] / l[0]
+    b = - l[2] / l[0]
+    for i in range(h2):
+        y2Temp = i
+        x2Temp = (int)(k * i + b)
+        if x2Temp >= 0 and x2Temp < w2 and math.sqrt((x1-x2Temp)**2 + (y1-y2Temp)**2) <= 35:
+            patch1 = im1Patch[y1 - window // 2 + window // 2 : y1 + window // 2 + window // 2 + 1, \
+                x1 - window // 2 + window // 2 : x1 + window // 2 + window // 2 + 1]
+            patch2 = im2Patch[y2Temp - window // 2 + window // 2 : y2Temp + window // 2 + window // 2 + 1,\
+                 x2Temp - window // 2 + window // 2 : x2Temp + window // 2 + window // 2 + 1]
+            patch = gaussian_filter(patch1 - patch2, 1)
+            err = np.linalg.norm(patch)
+            if err < error:
+                error = err
+                x2 = x2Temp
+                y2 = y2Temp
+    distance = math.sqrt((x1-x2)**2 + (y1-y2)**2)
+    return x2, y2
+
 
 '''
 Q5.1: RANSAC method.

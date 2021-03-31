@@ -4,13 +4,13 @@ import helper
 import cv2
 if __name__ == '__main__':
     # test q2.1
-    data = np.load('../data/some_corresp.npz')
-    pts1 = data['pts1']
-    pts2 = data['pts2']
-    pts = np.concatenate((pts1, pts2))
-    M = np.max(pts)
-    data = np.load('q2_1.npz')
-    F = data['F']
+    # data = np.load('../data/some_corresp.npz')
+    # pts1 = data['pts1']
+    # pts2 = data['pts2']
+    # pts = np.concatenate((pts1, pts2))
+    # M = np.max(pts)
+    # data = np.load('q2_1.npz')
+    # F = data['F']
     # uncomment this to save data
     # F = src.eightpoint(pts1, pts2, M)
     # randomly select 7 points
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # F = src.sevenpoint(pts1[sample, :], pts2[sample, :], M)
     im1 = cv2.imread('../data/im1.png')
     im2 = cv2.imread('../data/im2.png')
-    helper.displayEpipolarF(im1, im2, F)
+    # helper.displayEpipolarF(im1, im2, F)
 
     # 3.2
 
@@ -32,3 +32,15 @@ if __name__ == '__main__':
     # C2 = K2 @ M2
     # P, err = src.triangulate(C1, pts1, C2, pts2)
     # print(err)
+
+
+    # 4.1
+    data = np.load('q2_1.npz')
+    F = data['F']
+    # pts1, pts2 = helper.epipolarMatchGUI(im1, im2, F)
+    # save pts
+    # assert pts1.shape[1] == 2
+    # assert pts2.shape[1] == 2
+    # np.savez('q4_1.npz', F=F, pts1=pts1, pts2=pts2)
+    data = np.load('q4_1.npz')
+    print(data.files)
