@@ -36,10 +36,10 @@ def findM2(pts1, pts2, F):
             break
     # print(np.load('q3_3.npz')['C2'].shape)
     return M2
-
-# data = np.load('../data/some_corresp.npz')
-# pts1 = data['pts1']
-# pts2 = data['pts2']
-# F = np.load('q2_1.npz')['F']
-
-# findM2(pts1, pts2, F)
+if __name__ == '__main__':
+    data = np.load('../data/some_corresp.npz')
+    pts1 = data['pts1']
+    pts2 = data['pts2']
+    F = np.load('q2_1.npz')['F']
+    
+    findM2(pts1, pts2, F)

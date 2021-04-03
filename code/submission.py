@@ -70,14 +70,15 @@ def sevenpoint(pts1, pts2, M):
     u, s, v = np.linalg.svd(A)
     F1 = v[-1].reshape(3,3)
     F2 = v[-2].reshape(3,3)
-    func = lambda x: np.linalg.det((x * F1) + ((1 - x) * F2))
-    x0 = func(0)
-    x1 = (2 * (func(1) - func(-1)) / 3.0) - ((func(2) - func(-2)) / 12.0)
-    x2 = (0.5 * func(1)) + (0.5 * func(-1)) - func(0)
-    x3 = func(1) - x0 - x1 - x2
-    alphas = np.roots([x3,x2,x1,x0])
+    # use the property of determinant
+    det = lambda x: np.linalg.det((x * F1) + ((1 - x) * F2))
+    a0 = det(0)
+    a1 = (2 * (det(1) - det(-1)) / 3.0) - ((det(2) - det(-2)) / 12.0)
+    a2 = (0.5 * det(1)) + (0.5 * det(-1)) - det(0)
+    a3 = det(1) - a0 - a1 - a2
+    alphas = np.roots([a3,a2,a1,a0])
     alphas = np.real(alphas[np.isreal(alphas)])
-    final = []
+    Fs = []
     for a in alphas:
         F = a * F1 + (1-a) * F2
         u, s, vh = np.linalg.svd(np.array(F))
@@ -86,9 +87,11 @@ def sevenpoint(pts1, pts2, M):
         F = helper.refineF(F, pts1, pts2)
         T = np.diag((1 / M, 1 / M, 1))
         F = T.T @ F @ T
-        final.append(F)
-    final = np.array(final)
-    return final[-1]
+        Fs.append(F)
+    Fs = np.array(Fs)
+    # uncomment this to save F
+    # np.savez('q2_2.npz', F=final, M=M, pts1=pts1, pts2=pts2)
+    return Fs
 
 
 '''

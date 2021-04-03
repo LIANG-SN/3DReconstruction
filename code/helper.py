@@ -29,7 +29,7 @@ def displayEpipolarF(I1, I2, F):
     ax2.set_title('Verify that the corresponding point \n is on the epipolar line in this image')
     ax2.set_axis_off()
 
-    while True:
+    for i in range(8):
         plt.sca(ax1)
         x, y = plt.ginput(1, mouse_stop=2)[0]
 
