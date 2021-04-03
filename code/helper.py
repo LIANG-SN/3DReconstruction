@@ -84,7 +84,7 @@ def refineF(F, pts1, pts2):
     f = scipy.optimize.fmin_powell(
         lambda x: _objective_F(x, pts1, pts2), F.reshape([-1]),
         maxiter=100000,
-        maxfun=10000
+        maxfun=10000,disp=0
     )
     return _singularize(f.reshape([3, 3]))
 

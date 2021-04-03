@@ -6,8 +6,10 @@ Replace 'pass' by your implementation.
 # Insert your package here
 import numpy as np
 import helper 
+import sys
 import math
 from scipy.ndimage import gaussian_filter
+import scipy
 import cv2
 '''
 Q2.1: Eight Point Algorithm
@@ -48,7 +50,7 @@ def eightpoint(p1, p2, M): #  inverse p1 & p2 ??
     T = np.diag((1 / M, 1 / M, 1))
     F = T.T @ F @ T
     
-    np.savez('q2_1.npz', F=F, M=M)
+    # np.savez('q2_1.npz', F=F, M=M)  # resave this
     return F
 
 '''
@@ -86,7 +88,8 @@ def sevenpoint(pts1, pts2, M):
         F = T.T @ F @ T
         final.append(F)
     final = np.array(final)
-    return final[2]
+    return final[-1]
+
 
 '''
 Q3.1: Compute the essential matrix E.
@@ -189,17 +192,72 @@ Q5.1: RANSAC method.
             inliers, Nx1 bool vector set to true for inliers
 '''
 def ransacF(pts1, pts2, M):
-    # Replace pass by your implementation
-    pass
+   
+    numIteration = 300
+    tol = 2
+    maxInliers = -1
+    bestF = np.zeros((3,3))
+    bestInliers = []
+    # ransac loop
+    for i in range(numIteration):
+        # random choose 7 points
+        sample = np.random.randint(0, pts1.shape[0], 7)
+        # sample points
+        p1 = pts1[sample]
+        p2 = pts2[sample]
+        F = sevenpoint(p1, p2, M)
+        numInliers = 0
+        inliers = []
+        # check inliers, keep H if max
+        for k in range(pts1.shape[0]):
+            v = np.array([pts1[k, 0], pts1[k, 1], 1])
+            l = F.dot(v)
+            s = np.sqrt(l[0]**2+l[1]**2)
+            if s==0:
+                print('Zero line vector in displayEpipolar')
+            l = l/s
+            p2 = np.array([pts2[k, 0], pts2[k, 1], 1])
+            dist = abs(l @ p2.T)
+            if k in sample:
+                continue
+            elif dist < tol:
+                numInliers += 1
+                inliers.append(k)
+        if numInliers > maxInliers:
+            maxInliers = numInliers
+            bestF = F
+            bestInliers = np.append(sample, inliers)
+    bestInliers = np.array(bestInliers, dtype=int)
+    # recompute best F with inliers
+    bestF = eightpoint(pts1[bestInliers], pts2[bestInliers], M)
+    inliersFlag = np.zeros(pts1.shape[0])
+    inliersFlag[bestInliers] = 1
+    return bestF, inliersFlag
 
 '''
 Q5.2: Rodrigues formula.
     Input:  r, a 3x1 vector
     Output: R, a rotation matrix
 '''
-def rodrigues(r):
-    # Replace pass by your implementation
-    pass
+def rodrigues(rodrigues_vec):
+    theta = np.linalg.norm(rodrigues_vec)
+    if theta < sys.float_info.epsilon:              
+        rotation_mat = np.eye(3, dtype=float)
+    else:
+        r = rodrigues_vec / theta
+        I = np.eye(3, dtype=float)
+        r_rT = np.array([
+            [r[0]*r[0], r[0]*r[1], r[0]*r[2]],
+            [r[1]*r[0], r[1]*r[1], r[1]*r[2]],
+            [r[2]*r[0], r[2]*r[1], r[2]*r[2]]
+        ])
+        r_cross = np.array([
+            [0, -r[2], r[1]],
+            [r[2], 0, -r[0]],
+            [-r[1], r[0], 0]
+        ])
+        rotation_mat = math.cos(theta) * I + (1 - math.cos(theta)) * r_rT + math.sin(theta) * r_cross
+    return rotation_mat 
 
 '''
 Q5.2: Inverse Rodrigues formula.
@@ -207,8 +265,7 @@ Q5.2: Inverse Rodrigues formula.
     Output: r, a 3x1 vector
 '''
 def invRodrigues(R):
-    # Replace pass by your implementation
-    pass
+    return cv2.Rodrigues(R)[0]
 
 '''
 Q5.3: Rodrigues residual.
@@ -221,9 +278,27 @@ Q5.3: Rodrigues residual.
     Output: residuals, 4N x 1 vector, the difference between original and estimated projections
 '''
 def rodriguesResidual(K1, M1, p1, K2, p2, x):
-    # Replace pass by your implementation
-    pass
+    residuals = np.zeros((p1.shape[0] * 4,))
+    C1 = K1 @ M1
+    M2 = np.zeros((3, 4))
+    M2[:, :3] = rodrigues(x[0 : 3])
+    M2[:, 3] = x[3:6]
+    C2 = K2 @ M2
 
+    for i in range(p1.shape[0]):   
+        P = np.append(x[6 + i * 3 : 6 + i * 3 + 3], 1)
+        p1_ = C1 @ P
+        p2_ = C2 @ P
+        p1_ = (p1_ / p1_[-1])[0:2]
+        p2_ = (p2_ / p2_[-1])[0:2]
+        residuals[4 * i + 0] = (p1_[0] - p1[i, 0]) 
+        residuals[4 * i + 1] = (p1_[1] - p1[i, 1])
+        residuals[4 * i + 2] = (p2_[0] - p2[i, 0])
+        residuals[4 * i + 3] = (p2_[1] - p2[i, 1])
+    return residuals
+
+def rodriguesResidualCall(x, K1, M1, p1, K2, p2):
+    return rodriguesResidual(K1, M1, p1, K2, p2, x)
 '''
 Q5.3 Bundle adjustment.
     Input:  K1, the intrinsics of camera 1
@@ -237,5 +312,25 @@ Q5.3 Bundle adjustment.
             P2, the optimized 3D coordinates of points
 '''
 def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
-    # Replace pass by your implementation
-    pass
+    
+    r = invRodrigues(M2_init[:, 0:3])
+    t = M2_init[:,-1]
+    x = np.concatenate((r.flatten(), t.flatten(), P_init.flatten()))
+
+    errRaw = rodriguesResidual(K1, M1, p1, K2, p2, x)
+    errRaw = sum(np.square(errRaw))
+    print('raw err: ', errRaw)
+
+    op = scipy.optimize.least_squares(rodriguesResidualCall, x, args=(K1, M1, p1, K2, p2))
+    finalx = op.x
+    print(finalx.shape)
+
+    M2 = np.zeros((3, 4))
+    M2[:, :3] = rodrigues(finalx[0 : 3])
+    M2[:, 3] = finalx[3:6]
+
+    P2 = finalx[6:].reshape(p1.shape[0], 3)
+    errFinal = rodriguesResidual(K1, M1, p1, K2, p2, finalx)
+    errFinal = sum(np.square(errFinal))
+    print('final err: ', errFinal)
+    return M2, P2
