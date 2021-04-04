@@ -245,6 +245,9 @@ Q5.2: Rodrigues formula.
     Output: R, a rotation matrix
 '''
 def rodrigues(rodrigues_vec):
+    if rodrigues_vec.ndim == 2:
+        rodrigues_vec = rodrigues_vec.reshape((rodrigues_vec.shape[0],))
+    # print(rodrigues_vec.shape)
     theta = np.linalg.norm(rodrigues_vec)
     if theta < sys.float_info.epsilon:              
         rotation_mat = np.eye(3, dtype=float)
@@ -300,10 +303,14 @@ def rodriguesResidual(K1, M1, p1, K2, p2, x):
         residuals[4 * i + 1] = (p1_[1] - p1[i, 1])
         residuals[4 * i + 2] = (p2_[0] - p2[i, 0])
         residuals[4 * i + 3] = (p2_[1] - p2[i, 1])
+    residuals = residuals.reshape((residuals.shape[0], 1))
     return residuals
 
 def rodriguesResidualCall(x, K1, M1, p1, K2, p2):
-    return rodriguesResidual(K1, M1, p1, K2, p2, x)
+    residuals = rodriguesResidual(K1, M1, p1, K2, p2, x)
+    residuals = residuals.reshape((residuals.shape[0], ))
+    # print(residuals.shape)
+    return residuals
 '''
 Q5.3 Bundle adjustment.
     Input:  K1, the intrinsics of camera 1
@@ -328,7 +335,7 @@ def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
 
     op = scipy.optimize.least_squares(rodriguesResidualCall, x, args=(K1, M1, p1, K2, p2))
     finalx = op.x
-    print(finalx.shape)
+    # print(finalx.shape)
 
     M2 = np.zeros((3, 4))
     M2[:, :3] = rodrigues(finalx[0 : 3])
