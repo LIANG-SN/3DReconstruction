@@ -195,7 +195,7 @@ Q5.1: RANSAC method.
             inliers, Nx1 bool vector set to true for inliers
 '''
 def ransacF(pts1, pts2, M):
-   
+
     numIteration = 300
     tol = 2
     maxInliers = -1
@@ -209,12 +209,14 @@ def ransacF(pts1, pts2, M):
         p1 = pts1[sample]
         p2 = pts2[sample]
         F = sevenpoint(p1, p2, M)
+        if F.ndim == 3:
+            F = F[-1]
         numInliers = 0
         inliers = []
         # check inliers, keep H if max
         for k in range(pts1.shape[0]):
             v = np.array([pts1[k, 0], pts1[k, 1], 1])
-            l = F.dot(v)
+            l = F @ v
             s = np.sqrt(l[0]**2+l[1]**2)
             if s==0:
                 print('Zero line vector in displayEpipolar')
