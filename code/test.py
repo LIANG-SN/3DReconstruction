@@ -28,11 +28,11 @@ if __name__ == '__main__':
 
     # test q2.2
 
-    data = np.load('../data/some_corresp.npz')
-    pts1 = data['pts1']
-    pts2 = data['pts2']
-    pts = np.concatenate((pts1, pts2))
-    M = np.max(pts)
+    # data = np.load('../data/some_corresp.npz')
+    # pts1 = data['pts1']
+    # pts2 = data['pts2']
+    # pts = np.concatenate((pts1, pts2))
+    # M = np.max(pts)
 
     # load F directly
     # data = np.load('q2_2.npz')
@@ -53,6 +53,14 @@ if __name__ == '__main__':
     # else:
     #     helper.displayEpipolarF(im1, im2, Fs)
 
+    # 3.1
+    K = np.load('../data/intrinsics.npz')
+    K1 = K['K1']
+    K2 = K['K2']
+    data = np.load('q2_1.npz')
+    F = data['F']
+    E = src.essentialMatrix(F, K1, K2)
+    print(E)
     # 3.2
     
     # M1 = np.zeros((3, 4))
@@ -66,15 +74,17 @@ if __name__ == '__main__':
 
 
     # 4.1
+    # im1 = cv2.imread('../data/im1.png')
+    # im2 = cv2.imread('../data/im2.png')
     # data = np.load('q2_1.npz')
     # F = data['F']
     # pts1, pts2 = helper.epipolarMatchGUI(im1, im2, F)
-    # save pts
+    # # save pts
     # assert pts1.shape[1] == 2
     # assert pts2.shape[1] == 2
-    # np.savez('q4_1.npz', F=F, pts1=pts1, pts2=pts2)
+    ## np.savez('q4_1.npz', F=F, pts1=pts1, pts2=pts2)
     # data = np.load('q4_1.npz')
-    # print(data.files)
+    # print(data['F'])
 
     # test 5.1
     # data = np.load('../data/some_corresp_noisy.npz')
@@ -82,6 +92,9 @@ if __name__ == '__main__':
     # pts2 = data['pts2']
     # pts = np.concatenate((pts1, pts2))
     # M = np.max(pts)
+    # use eightpoint
+    # F = src.eightpoint(pts1, pts2, M)
+    # use RANSAC
     # F, inliers = src.ransacF(pts1, pts2, M)
     # im1 = cv2.imread('../data/im1.png')
     # im2 = cv2.imread('../data/im2.png')

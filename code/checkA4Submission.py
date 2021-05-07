@@ -40,6 +40,7 @@ correct_files = [
     'q3_3.npz',
     'q4_1.npz',
     'q4_2.npz',
+    'sliangal.pdf'
 ]
 
 correct = True

@@ -1,7 +1,6 @@
 """
 Homework4.
 Helper functions.
-
 Written by Chen Kong, 2018.
 """
 import numpy as np
@@ -29,7 +28,7 @@ def displayEpipolarF(I1, I2, F):
     ax2.set_title('Verify that the corresponding point \n is on the epipolar line in this image')
     ax2.set_axis_off()
 
-    for i in range(8):
+    while True:
         plt.sca(ax1)
         x, y = plt.ginput(1, mouse_stop=2)[0]
 
@@ -84,7 +83,7 @@ def refineF(F, pts1, pts2):
     f = scipy.optimize.fmin_powell(
         lambda x: _objective_F(x, pts1, pts2), F.reshape([-1]),
         maxiter=100000,
-        maxfun=10000,disp=0
+        maxfun=10000
     )
     return _singularize(f.reshape([3, 3]))
 
@@ -118,9 +117,7 @@ def epipolarMatchGUI(I1, I2, F):
     ax2.set_title('Verify that the corresponding point \n is on the epipolar line in this image')
     ax2.set_axis_off()
 
-    pts1 = []
-    pts2 = []
-    for i in range(12):
+    while True:
         plt.sca(ax1)
         x, y = plt.ginput(1, mouse_stop=2)[0]
 
@@ -154,8 +151,3 @@ def epipolarMatchGUI(I1, I2, F):
         x2, y2 = sub.epipolarCorrespondence(I1, I2, F, xc, yc)
         ax2.plot(x2, y2, 'ro', MarkerSize=8, linewidth=2)
         plt.draw()
-        pts1.append([xc, yc])
-        pts2.append([x2, y2])
-        print(pts1, pts2)
-    
-    return np.array(pts1), np.array(pts2)
